@@ -1,9 +1,9 @@
 #--------------------------------
-# Name:         gsflow_veg_parameters
+# Name:         veg_parameters
 # Purpose:      GSFLOW vegetation parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2014-10-13
+# Created       2015-03-08
 # Python:       2.7
 #--------------------------------
 
@@ -19,7 +19,7 @@ import arcpy
 from arcpy import env
 from arcpy.sa import *
 
-from gsflow_support_functions import *
+from support_functions import *
 
 ################################################################################
 

@@ -1,9 +1,9 @@
 #--------------------------------
-# Name:         gsflow_support_functions.py
+# Name:         support_functions.py
 # Purpose:      GSFLOW parameter support functions
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2014-11-04
+# Created       2015-03-08
 # Python:       2.7
 #--------------------------------
 
@@ -21,7 +21,7 @@ import arcpy
 from arcpy import env
 from arcpy.sa import *
 
-from gsflow_support_functions import *
+from support_functions import *
 
 ################################################################################
 

@@ -1,9 +1,9 @@
 #--------------------------------
-# Name:         prism_800m_normals.py
-# Purpose:      GSFLOW PRISM parameters from default 400m normals 
+# Name:         gsflow_prism_normals.py
+# Purpose:      GSFLOW PRISM parameters from free 800m or 4km normals 
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-08
+# Created       2014-10-16
 # Python:       2.7
 #--------------------------------
 
@@ -23,7 +23,7 @@ from arcpy import env
 from arcpy.sa import *
 import numpy as np
 
-from support_functions import *
+from gsflow_support_functions import *
 
 ################################################################################
 
@@ -94,45 +94,56 @@ def gsflow_prism_parameters(workspace, config_path=None, data_name='ALL'):
 
         ## PRISM data names
         if data_name == 'ALL':
-            data_name_list = ['PPT', 'TMAX', 'TMIN']
+            data_name_list = ['ppt', 'tmax', 'tmin']
         else:
-            data_name_list = [data_name]
+            data_name_list = [data_name.lower()]
 
         ## Set month list
         month_list = ['{0:02d}'.format(m) for m in range(1,13)]
-        month_list.extend(['14'])
+
+        ## PRISM regular expression for each PRISM data type (PPT, TMAX, TMIN)
+        prism_input_re = re.compile(
+            '^PRISM_(%s)_30yr_normal_(4kmM2|800mM2)_(\d{2})(_bil)?.bil$' % '|'.join(data_name_list),
+            re.IGNORECASE)
+        prism_output_re = re.compile(
+            '^PRISM_(%s)_30yr_normal_(4kmM2|800mM2)_(\d{2})(_bil)?.*$' % '|'.join(data_name_list),
+            re.IGNORECASE)
 
         ## Check fields
         logging.info('\nAdding PRISM fields if necessary')
         for data_name in data_name_list:
             for month in month_list:
                 add_field_func(
-                    hru.polygon_path, '{0}_{1}'.format(data_name, month), 'DOUBLE')
+                    hru.polygon_path, '{0}_{1}'.format(data_name.upper(), month),
+                    'DOUBLE')
             
         ## Process each PRISM data type
         logging.info('\nProjecting/clipping PRISM mean monthly rasters')
         for data_name in data_name_list:
-            logging.info('\n{0}'.format(data_name))
+            logging.info('\n{0}'.format(data_name.upper()))
             ## PRISM input data workspace
-            input_ws = os.path.join(prism_ws, data_name.lower())
+            input_ws = os.path.join(prism_ws, data_name)
             if not os.path.isdir(input_ws):
                 logging.error('\nERROR: The PRISM {0} folder does not exist'.format(
-                    data_name.lower()))
+                    data_name))
                 raise SystemExit()
 
+            ## Get input raster for each month
+            prism_input_dict = dict([
+                [prism_input_re.match(item).group(3), item]
+                for item in os.listdir(input_ws)
+                if (prism_input_re.match(item) and
+                    prism_input_re.match(item).group(1) == data_name)])
+
             ## PRISM output data workspace
-            output_ws = os.path.join(
-                hru.param_ws, data_name.lower()+'_rasters')
+            output_ws = os.path.join(hru.param_ws, data_name+'_rasters')
             if not os.path.isdir(output_ws):
                 os.mkdir(output_ws)
 
             ## Remove all non year/month rasters in PRISM temp folder
             logging.info('  Removing existing PRISM files')
-            prism_normal_re = re.compile(
-                '^PRISM_(%s)_30yr_normal_800mM2_(\d{2})_bil.*$' % '|'.join(data_name_list),
-                re.IGNORECASE)
             for item in os.listdir(output_ws):
-                if prism_normal_re.match(item):
+                if prism_output_re.match(item):
                     os.remove(os.path.join(output_ws, item))
 
             ## Extract, project/resample, clip
@@ -142,17 +153,9 @@ def gsflow_prism_parameters(workspace, config_path=None, data_name='ALL'):
             for month in month_list:
                 logging.info('  Month: {0}'.format(month))
 
-                ## New PRISM format uses annual instead of _14
-                if month == '14':
-                    input_month == 'annual'
-                else:
-                    input_month = month
-
                 ## Projected/clipped PRISM raster
-                input_name = 'PRISM_{0}_30yr_normal_800mM2_{1}_bil.bil'.format(
-                    data_name.lower(), input_month)
-                output_name = 'PRISM_{0}_30yr_normal_800mM2_{1}.img'.format(
-                    data_name.lower(), month)
+                input_name = prism_input_dict[month]
+                output_name =input_name.replace('_bil.bil', '.img')
                 input_raster = os.path.join(input_ws, input_name)
                 output_raster = os.path.join(output_ws, output_name)
 
@@ -253,7 +256,7 @@ if __name__ == '__main__':
         data_name = sys.argv[2]
     except IndexError:
         data_name = get_prism_data_name()
-    if data_name not in ['PPT', 'TMAX', 'TMIN']:
+    if data_name.lower not in ['ppt', 'tmax', 'tmin']:
         data_name = 'ALL'
 
     ## Run Information

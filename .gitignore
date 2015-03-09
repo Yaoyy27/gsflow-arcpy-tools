@@ -1,0 +1,6 @@
+#python specific
+*.pyc
+# generic files to ignore
+*~
+*.lock
+*.bak

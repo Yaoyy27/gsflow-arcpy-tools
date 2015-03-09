@@ -3,7 +3,7 @@
 # Purpose:      Fill PRMS Parameter File Template
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2014-10-06
+# Created       2015-03-08
 # Python:       2.7
 #--------------------------------
 
@@ -20,7 +20,7 @@ import sys
 import arcpy
 from arcpy import env
 
-from gsflow_support_functions import *
+from support_functions import *
 
 ################################################################################
 

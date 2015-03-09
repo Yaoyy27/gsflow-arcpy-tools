@@ -1,9 +1,9 @@
 #--------------------------------
-# Name:         gsflow_dem_parameters.py
+# Name:         dem_parameters.py
 # Purpose:      GSFLOW DEM parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2014-10-13
+# Created       2015-03-08
 # Python:       2.7
 #--------------------------------
 
@@ -20,7 +20,7 @@ from arcpy import env
 from arcpy.sa import *
 ##import numpy as np
 
-from gsflow_support_functions import *
+from support_functions import *
 
 ################################################################################
 
@@ -248,10 +248,12 @@ def gsflow_dem_parameters(workspace, config_path=None):
         dem_obj = Raster(dem_path)
         ## Check linear unit of raster
         ## DEADBEEF - The conversion could probably be dynamic
-        if dem_obj.spatialReference.linearUnitName.upper() <> 'METER':
+        linear_unit_list = ['METER', 'FOOT_US']
+        linear_unit = dem_obj.spatialReference.linearUnitName.upper()
+        if linear_unit not in linear_unit_list:
             logging.error(
-                '\nERROR: The linear unit of the projected/clipped'+
-                ' DEM is not meters\n')
+                '\nERROR: The linear unit of the projected/clipped DEM must'+
+                ' be meters or feet\n  {0}'.format(linear_unit))
             raise SystemExit()
         del dem_obj
 
@@ -358,11 +360,16 @@ def gsflow_dem_parameters(workspace, config_path=None):
         ## Calculate HRU_ELEV (HRU elevation in feet)
         logging.info('\nCalculating initial {0} from {1}'.format(
             hru.elev_field, hru.dem_mean_field))
-        logging.info('  Converting from meters to feet')
-        arcpy.CalculateField_management(
-            hru.polygon_path, hru.elev_field,
-            ## Convert meters to feet
-            '!{0}! * 3.28084'.format(hru.dem_mean_field), 'PYTHON')
+        if linear_unit == 'METERS':
+            logging.info('  Converting from meters to feet')
+            arcpy.CalculateField_management(
+                hru.polygon_path, hru.elev_field,
+                '!{0}! * 3.28084'.format(hru.dem_mean_field), 'PYTHON')
+        elif linear_unit == 'FOOT_US':
+            arcpy.CalculateField_management(
+                hru.polygon_path, hru.elev_field,
+                '!{0}!'.format(hru.dem_mean_field), 'PYTHON')
+
 
         ## Flow accumulation weighted elevation
         if calc_flow_acc_dem_flag:

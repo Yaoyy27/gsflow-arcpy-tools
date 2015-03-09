@@ -1,9 +1,9 @@
 #--------------------------------
-# Name:         gsflow_stream_parameters.py
+# Name:         stream_parameters.py
 # Purpose:      GSFLOW stream parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2014-11-26
+# Created       2015-03-08
 # Python:       2.7
 #--------------------------------
 
@@ -24,7 +24,7 @@ from arcpy.sa import *
 
 ##import numpy as np
 
-from gsflow_support_functions import *
+from support_functions import *
 
 ################################################################################
 

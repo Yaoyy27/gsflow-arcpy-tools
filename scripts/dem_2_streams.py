@@ -1,9 +1,9 @@
 #--------------------------------
-# Name:         gsflow_dem_2_streams.py
+# Name:         dem_2_streams.py
 # Purpose:      GSFLOW Flow Parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2014-11-25
+# Created       2015-03-08
 # Python:       2.7
 #--------------------------------
 
@@ -24,7 +24,7 @@ from arcpy.sa import *
 import numpy as np
 ##from scipy import ndimage
 
-from gsflow_support_functions import *
+from support_functions import *
 
 ################################################################################
 
