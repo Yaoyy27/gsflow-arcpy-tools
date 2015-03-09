@@ -1,7 +1,7 @@
 gsflow-arcpy-tools
 ==================
 
-Tools for developing GSFLOW inputs using Python and ArcPy (ArcGIS)
+Series of Python/ArcPy (ArcGIS) scripts for developing inputs for a GSFLOW model.
 
 #####Script Execution Order
 - fishnet_generator.py 
@@ -31,3 +31,5 @@ Available water capacity (AWC), percent sand, percent clay, and saturated hydrau
 PRISM precipitation, minimum temperature, and maximum temperature 30 year normals for the CONUS can be downloaded from the [PRISM site](http://www.prism.oregonstate.edu/normals/).
 #####CRT
 User must have [Cascade Routing Tool](http://water.usgs.gov/ogw/CRT/) (CRT) version 1.1.1.
+#####Remap files
+Example remap files are provided, although it may be necessary to modify these to include new or missing LANDFIRE vegetation types.  In versions of ArcGIS before 10.2, you could have comments after the values (indicated by a /*) but this was removed in 10.2.  The easiest solution is to remove all comments and white space after the values.  The 10.2 versions should probably be made the default with comments listed below the values. 
