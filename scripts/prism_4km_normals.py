@@ -100,7 +100,7 @@ def gsflow_prism_parameters(workspace, config_path=None, data_name='ALL'):
 
         ## Set month list
         month_list = ['{0:02d}'.format(m) for m in range(1,13)]
-        month_list.extend(['14'])
+        ##month_list.extend(['annual'])
 
         ## Check fields
         logging.info('\nAdding PRISM fields if necessary')
@@ -141,12 +141,6 @@ def gsflow_prism_parameters(workspace, config_path=None, data_name='ALL'):
             ##env.extent = hru.extent
             for month in month_list:
                 logging.info('  Month: {0}'.format(month))
-                
-                ## New PRISM format uses annual instead of _14
-                if month == '14':
-                    input_month == 'annual'
-                else:
-                    input_month = month
 
                 ## Projected/clipped PRISM raster
                 input_name = 'PRISM_{0}_30yr_normal_4kmM2_{1}_bil.bil'.format(

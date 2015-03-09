@@ -102,6 +102,7 @@ def gsflow_veg_parameters(workspace, config_path=None):
                 ('  veg_type_field {0} is not an integer type\n  Using VALUE '+
                  'field to set vegetation type').format(veg_type_field))
             veg_type_field = 'VALUE'
+        
         ## Check that remap folder is valid
         if not os.path.isdir(remap_ws):
             logging.error('\nERROR: Remap folder does not exist')
@@ -147,7 +148,7 @@ def gsflow_veg_parameters(workspace, config_path=None):
         ## Build output folders if necesssary
         veg_temp_ws = os.path.join(hru.param_ws, 'veg_rasters')
         if not os.path.isdir(veg_temp_ws): 
-			os.mkdir(veg_temp_ws)
+            os.mkdir(veg_temp_ws)
         ## Output paths
         veg_cover_path = os.path.join(veg_temp_ws, 'veg_cover.img')
         veg_type_path = os.path.join(veg_temp_ws, 'veg_type.img')
@@ -179,7 +180,18 @@ def gsflow_veg_parameters(workspace, config_path=None):
         add_field_func(hru.polygon_path, hru.wrain_intcp_field, 'DOUBLE')
         add_field_func(hru.polygon_path, hru.root_depth_field, 'DOUBLE')
 
-            
+          
+        ## Check that remaps have all necessary values
+        logging.info('\nChecking remap tables against all raster cells')
+        logging.info('  (i.e. even those outside the study area)')
+        remap_check_func(cov_type_remap_path, veg_type_orig_path)
+        remap_check_func(covden_sum_remap_path, veg_cover_orig_path)
+        remap_check_func(snow_intcp_remap_path, veg_type_orig_path)
+        remap_check_func(srain_intcp_remap_path, veg_type_orig_path)
+        remap_check_func(wrain_intcp_remap_path, veg_type_orig_path)
+        remap_check_func(root_depth_remap_path, veg_type_orig_path)
+        
+
         ## Assume all vegetation rasters will need to be rebuilt
         ## Check veg cover and veg type rasters
         ## This will check for matching spat. ref., snap point, and cellsize
@@ -230,7 +242,7 @@ def gsflow_veg_parameters(workspace, config_path=None):
             veg_type_obj = Raster(veg_type_orig_path)
 
         ## Project veg type
-        ## DEADBEEF - Arc10.2 ProjectRaster does not extent
+        ## DEADBEEF - Arc10.2 ProjectRaster does not honor extent
         project_raster_func(
             veg_type_obj, veg_type_path, hru.sr,
             'NEAREST', veg_type_cs, transform_str,
@@ -243,6 +255,7 @@ def gsflow_veg_parameters(workspace, config_path=None):
         ##    veg_type_orig_sr)
         ##arcpy.ClearEnvironment('extent')
         del transform_str, veg_type_orig_sr, veg_type_obj
+
 
         ## Reclassifying vegetation cover type
         logging.info('\nCalculating COV_TYPE')
@@ -266,7 +279,7 @@ def gsflow_veg_parameters(workspace, config_path=None):
         logging.debug('  Reclassifying: {0}'.format(covden_win_remap_path))
         covden_win_obj = ReclassByASCIIFile(
             cov_type_path, covden_win_remap_path)
-        covden_win_obj *= 1
+        covden_win_obj *= 0.01
         covden_win_obj *= Raster(covden_sum_path)
         covden_win_obj.save(covden_win_path)
         del covden_win_obj
@@ -372,6 +385,27 @@ def gsflow_veg_parameters(workspace, config_path=None):
         try: arcpy.CheckInExtension('Spatial')
         except: pass
         ##arcpy.ResetEnvironments()
+
+################################################################################
+
+def get_remap_keys(remap_path):
+    with open(remap_path) as remap_f:
+        lines = remap_f.readlines()
+    remap_f.close()
+    return [int(l.split(':')[0].strip()) for l in lines if l and '#' not in l]
+
+def get_raster_values(raster_path):
+    return [int(row[0]) for row in arcpy.da.SearchCursor(raster_path, ['Value'])]
+    
+def remap_check_func(remap_path, raster_path):
+    logging.info('  {0} - {1}'.format(
+        os.path.basename(remap_path), os.path.basename(raster_path)))
+    remap_keys = get_remap_keys(remap_path)
+    raster_values = get_raster_values(raster_path)
+    missing_keys = sorted(list(set(raster_values) - set(remap_keys)))
+    for key in missing_keys:
+        logging.warning(
+            '    Raster value {0} is not in the remap table'.format(key))
 
 ################################################################################
 

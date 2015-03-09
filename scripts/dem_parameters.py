@@ -232,6 +232,8 @@ def gsflow_dem_parameters(workspace, config_path=None):
         logging.debug('  Projection method: {0}'.format(dem_proj_method))
         ## Project DEM
         ## DEADBEEF - Arc10.2 ProjectRaster does not honor extent
+        logging.debug('  Input SR:  {0}'.format(dem_orig_sr.exportToString()))
+        logging.debug('  Output SR: {0}'.format(hru.sr.exportToString()))
         project_raster_func(
             dem_orig_path, dem_path, hru.sr,
             dem_proj_method, dem_cs, transform_str,
@@ -245,10 +247,10 @@ def gsflow_dem_parameters(workspace, config_path=None):
         ##    dem_orig_sr)
         ##arcpy.ClearEnvironment('extent')
             
-        dem_obj = Raster(dem_path)
         ## Check linear unit of raster
         ## DEADBEEF - The conversion could probably be dynamic
-        linear_unit_list = ['METER', 'FOOT_US']
+        dem_obj = Raster(dem_path)
+        linear_unit_list = ['METER', 'FOOT_US', 'FOOT']
         linear_unit = dem_obj.spatialReference.linearUnitName.upper()
         if linear_unit not in linear_unit_list:
             logging.error(
@@ -360,12 +362,12 @@ def gsflow_dem_parameters(workspace, config_path=None):
         ## Calculate HRU_ELEV (HRU elevation in feet)
         logging.info('\nCalculating initial {0} from {1}'.format(
             hru.elev_field, hru.dem_mean_field))
-        if linear_unit == 'METERS':
+        if linear_unit in ['METERS']:
             logging.info('  Converting from meters to feet')
             arcpy.CalculateField_management(
                 hru.polygon_path, hru.elev_field,
                 '!{0}! * 3.28084'.format(hru.dem_mean_field), 'PYTHON')
-        elif linear_unit == 'FOOT_US':
+        elif linear_unit in ['FOOT_US', 'FOOT']:
             arcpy.CalculateField_management(
                 hru.polygon_path, hru.elev_field,
                 '!{0}!'.format(hru.dem_mean_field), 'PYTHON')
@@ -516,7 +518,6 @@ def gsflow_dem_parameters(workspace, config_path=None):
            
             arcpy.Delete_management(hru_polygon_layer)
             del hru_polygon_layer
-
 
     except:
         logging.exception('Unhandled Exception Error\n\n')

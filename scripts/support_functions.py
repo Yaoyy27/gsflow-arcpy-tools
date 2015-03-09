@@ -55,8 +55,10 @@ class hru_parameters():
         self.point_path   = inputs_cfg.get('INPUTS', 'hru_centroid_path')
         self.sr_name = inputs_cfg.get('INPUTS', 'hru_projection')
         self.cs      = inputs_cfg.getint('INPUTS', 'hru_cellsize')
-        self.ref_x   = inputs_cfg.getint('INPUTS', 'hru_ref_x')
-        self.ref_y   = inputs_cfg.getint('INPUTS', 'hru_ref_y')
+        self.ref_x   = inputs_cfg.getfloat('INPUTS', 'hru_ref_x')
+        self.ref_y   = inputs_cfg.getfloat('INPUTS', 'hru_ref_y')
+        ##self.ref_x   = inputs_cfg.getint('INPUTS', 'hru_ref_x')
+        ##self.ref_y   = inputs_cfg.getint('INPUTS', 'hru_ref_y')
         self.buffer_cells = inputs_cfg.getint('INPUTS', 'hru_buffer_cells')
         self.snap_method = inputs_cfg.get('INPUTS', 'hru_param_snap_method')
         self.fid_field = inputs_cfg.get('INPUTS', 'orig_fid_field')
@@ -400,6 +402,7 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
             zs_obj = ZonalStatisticsAsTable(
                 hru_raster_path, 'Value', raster_path,
                 zs_table, 'DATA', zs_stat.upper())
+
             ## Read values from points
             logging.debug('    Reading values from zs table')
             ## Fields 1 & 4 are the 'Value' (ORIG_FID) and the stat (SUM, MEAN, etc)
@@ -422,6 +425,8 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
         fields = zs_fields + [hru_param.fid_field]
         with arcpy.da.UpdateCursor(polygon_path, fields) as u_cursor:
             for row in u_cursor:
+                ## Create an empty dictionary if FID does not exist
+                ## Missing FIDs did not have zonal stats calculated
                 row_dict = data_dict.get(int(row[-1]), None)
                 for i, zs_field in enumerate(zs_fields):
                     ## If stats were calculated for only some parameters,
@@ -890,3 +895,9 @@ def remap_code_block(remap_path):
 ##        first_line = False
 ##    return raster_obj
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False

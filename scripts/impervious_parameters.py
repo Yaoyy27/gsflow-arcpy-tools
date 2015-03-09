@@ -81,7 +81,7 @@ def gsflow_impervious_parameters(workspace, config_path=None):
         ## Build output folder if necessary
         imperv_temp_ws = os.path.join(hru.param_ws, 'impervious_rasters')
         if not os.path.isdir(imperv_temp_ws): 
-	    os.mkdir(imperv_temp_ws)
+            os.mkdir(imperv_temp_ws)
         ## Output paths
         imperv_path = os.path.join(imperv_temp_ws, 'impervious_cover.img')
 

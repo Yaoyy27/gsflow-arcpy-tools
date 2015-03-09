@@ -287,10 +287,11 @@ def gsflow_stream_parameters(workspace, config_path=None):
         ## Build list of unique segments
         iseg_list = sorted(list(set([v[1] for v in cell_dict.values()])))
 
+
         ## Calculate IREACH and OUTSEG
         logging.info("Calculate IREACH and OUTSEG")
         outseg_dict = dict()
-        for iseg in iseg_list:
+        for iseg in sorted(iseg_list):
             logging.debug("    Segment: {0}".format(iseg))
             ## Subset of cell_dict for current iseg
             iseg_dict = dict(
@@ -403,8 +404,6 @@ def gsflow_stream_parameters(workspace, config_path=None):
             testseg_list = inseg_dict[pourseg]
             while testseg_list:
                 testseg = testseg_list.pop()
-                if testseg == 316:
-                    print 316
                 pourseg_dict[testseg] = pourseg
                 if pourseg == testseg:
                     continue

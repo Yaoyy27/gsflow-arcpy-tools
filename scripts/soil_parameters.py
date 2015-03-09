@@ -69,7 +69,7 @@ def gsflow_soil_parameters(workspace, config_path=None):
         ## Input folders
         soil_temp_ws = os.path.join(hru.param_ws, 'soil_rasters')
         if not os.path.isdir(soil_temp_ws): 
-	    os.mkdir(soil_temp_ws)
+            os.mkdir(soil_temp_ws)
 
         ## Input paths
         awc_path = os.path.join(soil_temp_ws, 'awc.img')
@@ -152,7 +152,7 @@ def gsflow_soil_parameters(workspace, config_path=None):
         env.pyramid = 'PYRAMIDS -1'
         ##env.pyramid = 'PYRAMIDS 0'
         env.workspace = soil_temp_ws
-	env.scratchWorkspace = hru.scratch_ws
+        env.scratchWorkspace = hru.scratch_ws
 
         ## Check field
         logging.info('\nAdding soil fields if necessary')

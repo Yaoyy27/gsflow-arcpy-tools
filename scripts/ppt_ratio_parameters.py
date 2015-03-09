@@ -145,7 +145,7 @@ def gsflow_ppt_ratio_parameters(workspace, config_path=None):
         ## Build output folders if necesssary
         ppt_ratio_temp_ws = os.path.join(hru.param_ws, 'ppt_ratio_temp')
         if not os.path.isdir(ppt_ratio_temp_ws): 
-	    os.mkdir(ppt_ratio_temp_ws)
+            os.mkdir(ppt_ratio_temp_ws)
         ppt_zone_path = os.path.join(ppt_ratio_temp_ws, 'ppt_zone.shp')
         ##ppt_zone_clip_path = os.path.join(ppt_ratio_temp_ws, 'ppt_zone_clip.shp')
 
@@ -156,7 +156,7 @@ def gsflow_ppt_ratio_parameters(workspace, config_path=None):
         ##env.pyramid = 'PYRAMIDS -1'
         env.pyramid = 'PYRAMIDS 0'
         env.workspace = workspace
-	env.scratchWorkspace = hru.scratch_ws
+        env.scratchWorkspace = hru.scratch_ws
 
         ## Set month list based on flags
         month_list = ['{0:02d}'.format(m) for m in range(1,13)]

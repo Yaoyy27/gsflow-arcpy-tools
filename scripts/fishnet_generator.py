@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW fishnet generator
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-08
+# Created       2015-03-09
 # Python:       2.7
 #--------------------------------
 
@@ -89,16 +89,25 @@ def gsflow_fishnet_func(workspace, config_path=None):
             study_area_sr.GCS.name))
 
         ## Set spatial reference of hru shapefile
-        ## If the spatial reference can be set to an int, then use the value
-        try: hru.sr_name = int(hru.sr_name)
-        except ValueError: pass
-        hru.sr = arcpy.SpatialReference(hru.sr_name)
+        ## If the spatial reference can be set to an int,
+        ##   assume it is an EPSG or ArcGIS WKID
+        ## If not, try setting the spatial reference directly from
+        if is_number(hru.sr_name):
+            hru.sr = arcpy.SpatialReference(int(hru.sr_name))
+        elif os.path.isfile(hru.sr_name) and hru.sr_name.endswith('.prj'):
+            hru.sr = arcpy.SpatialReference(hru.sr_name)
+        ## DEADBEEF - actually check if the file is a raster/feature class
+        elif arcpy.Exists(hru.sr_name) and not hru.sr_name.endswith('.prj'):
+            hru.sr = arcpy.Describe(hru.sr_name).spatialReference
+        else:
+            hru.sr = arcpy.SpatialReference(hru.sr_name)
         logging.debug('  HRU spat. ref.: {0}'.format(hru.sr.name))
         logging.debug('  HRU GCS:        {0}'.format(hru.sr.GCS.name))
 
         ## If study area spat_ref doesn't match hru_param spat_ref
         ## Project study are to hru_param and get projected extent
-        ## Otherwise, read study_area extent directly       
+        ## Otherwise, read study_area extent directly
+        ## DEADBEEF - This will fail for NAD83 Zone 11N Meters and Feet
         if hru.sr.name <> study_area_sr.name:
             logging.info('\n  Projecting study area...')
             ## Set preferred transforms
