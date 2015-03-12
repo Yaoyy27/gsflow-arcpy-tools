@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW Flow Parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-08
+# Created       2015-03-11
 # Python:       2.7
 #--------------------------------
 
@@ -200,27 +200,28 @@ def gsflow_flow_parameters(workspace, config_path=None):
 
 
         ## Check lake cell elevations
-        logging.info('\nChecking lake cell {0}'.format(hru.dem_adj_field))
-        lake_elev_dict = defaultdict(list)
-        fields = [
-            hru.type_field, hru.lake_id_field,
-            hru.dem_adj_field, hru.id_field]
-        for row in arcpy.da.SearchCursor(hru.polygon_path, fields):
-            if int(row[0]) <> 2:
-                continue
-            lake_elev_dict[int(row[1])].append(float(row[2]))
-        logging.info('  {0:>7} {1:>12} {2:>12} {3:>12} {4:>12}'.format(
-            'Lake ID', 'Minimum', 'Mean', 'Maximum', 'Std. Dev.'))
-        for lake_id, lake_elev_list in lake_elev_dict.items():
-            lake_elev_array = np.array(lake_elev_list)
-            logging.info('  {0:7} {1:12f} {2:12f} {3:12f} {4:12f}'.format(
-                lake_id, np.min(lake_elev_array), np.mean(lake_elev_array),
-                np.max(lake_elev_array), np.std(lake_elev_array)))
-            if np.std(lake_elev_array) > 1:
-                logging.warning(
-                    '  Please check the lake cell elevations\n'+
-                    '  They may need to be manually adjusted'.format(lake_id))
-                raw_input('  Press ENTER to continue')
+        if set_lake_flag:
+            logging.info('\nChecking lake cell {0}'.format(hru.dem_adj_field))
+            lake_elev_dict = defaultdict(list)
+            fields = [
+                hru.type_field, hru.lake_id_field,
+                hru.dem_adj_field, hru.id_field]
+            for row in arcpy.da.SearchCursor(hru.polygon_path, fields):
+                if int(row[0]) <> 2:
+                    continue
+                lake_elev_dict[int(row[1])].append(float(row[2]))
+            logging.info('  {0:>7} {1:>12} {2:>12} {3:>12} {4:>12}'.format(
+                'Lake ID', 'Minimum', 'Mean', 'Maximum', 'Std. Dev.'))
+            for lake_id, lake_elev_list in lake_elev_dict.items():
+                lake_elev_array = np.array(lake_elev_list)
+                logging.info('  {0:7} {1:12f} {2:12f} {3:12f} {4:12f}'.format(
+                    lake_id, np.min(lake_elev_array), np.mean(lake_elev_array),
+                    np.max(lake_elev_array), np.std(lake_elev_array)))
+                if np.std(lake_elev_array) > 1:
+                    logging.warning(
+                        '  Please check the lake cell elevations\n'+
+                        '  They may need to be manually adjusted'.format(lake_id))
+                    raw_input('  Press ENTER to continue')
 
 
         ## Convert DEM_ADJ to raster
@@ -329,7 +330,7 @@ def gsflow_flow_parameters(workspace, config_path=None):
         ##flow_acc_sub_obj.save(flow_acc_sub_path)
 
         ## Flow accumulation and stream link with lakes
-        logging.info('\nCalculating flow accumulation & stream link w/ lakes')
+        logging.info('\nCalculating flow accumulation & stream link (w/ lakes)')
         flow_acc_obj = Con((hru_type_in_obj >= 1), flow_acc_full_obj)
         ##flow_acc_obj.save(flow_acc_sub_path)
         stream_link_obj = StreamLink(flow_acc_obj, flow_dir_obj)
@@ -337,7 +338,7 @@ def gsflow_flow_parameters(workspace, config_path=None):
         del flow_acc_obj, stream_link_obj
         
         ## Flow accumulation and stream link without lakes
-        logging.info('Calculating flow accumulation & stream link w/o lakes')
+        logging.info('Calculating flow accumulation & stream link (w/o lakes)')
         flow_acc_obj = Con((hru_type_in_obj == 1), flow_acc_full_obj)
         ##flow_acc_obj.save(flow_acc_sub_path)
         stream_link_obj = StreamLink(flow_acc_obj, flow_dir_obj)
@@ -350,7 +351,7 @@ def gsflow_flow_parameters(workspace, config_path=None):
         ##stream_link_obj.save(stream_link_path)
         ## Calculate stream link with and without lakes
         ## Initial Stream Order (w/ lakes)
-        logging.info('Calculating stream order w/ lakes')
+        logging.info('Calculating stream order (w/ lakes)')
         logging.debug(
             '  Using SHREVE ordering so after 1st order are removed, '+
             '2nd order will only be dangles')
@@ -390,7 +391,7 @@ def gsflow_flow_parameters(workspace, config_path=None):
                 ('  lake_segment_offset was not set in the input file\n'+
                  '  Using automatic lake segment offset: {0}').format(
                      lake_seg_offset))
-        else:
+        elif set_lake_flag:
             logging.info(
                 ('  Using manual lake segment offset: {0}').format(lake_seg_offset))
         ## Include lake cells into "stream_link" before calculating watersheds

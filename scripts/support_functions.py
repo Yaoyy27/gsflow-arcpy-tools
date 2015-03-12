@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW parameter support functions
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-08
+# Created       2015-03-12
 # Python:       2.7
 #--------------------------------
 
@@ -31,10 +31,18 @@ class hru_parameters():
         inputs_cfg = ConfigParser.ConfigParser()
         try:
             inputs_cfg.readfp(open(config_path))
+        except IOError:
+            logging.error(('\nERROR: Config file does not exist\n'+
+                           '  {0}\n').format(field_list_path))
+            raise SystemExit()
+        except ConfigParser.MissingSectionHeaderError:
+            logging.error('\nERROR: Config file is missing a section header\n'+
+                          '    Please make sure the following line is at the '+
+                          'beginning of the file\n[INPUTS]\n')
+            raise SystemExit()
         except:
-            logging.error('\nERROR: Config file could not be read, '+
-                          'is not an input file, or does not exist\n'+
-                          'ERROR: config_file = {0}\n').format(config_path)
+            logging.error(('\nERROR: Config file could not be read\n'+
+                           '  {0}\n').format(config_path))
             raise SystemExit()
         logging.debug('\nReading Input File')
         
@@ -43,10 +51,18 @@ class hru_parameters():
         fields_cfg = ConfigParser.ConfigParser()
         try:
             fields_cfg.readfp(open(field_list_path))
+        except IOError:
+            logging.error(('\nERROR: Field list file does not exist\n'+
+                           '  {0}\n').format(field_list_path))
+            raise SystemExit()
+        except ConfigParser.MissingSectionHeaderError:
+            logging.error('\nERROR: Field list file is missing a section header\n'+
+                          '    Please make sure the following line is at the '+
+                          'beginning of the file\n[FIELDS]\n')
+            raise SystemExit()
         except:
-            logging.error('\nERROR: Field list file could not be read, '+
-                          'is not an input file, or does not exist\n'+
-                          'ERROR: field_list_path = {0}\n').format(field_list_path)
+            logging.error(('\nERROR: Field list file could not be read\n'+
+                           '  {0}\n').format(field_list_path))
             raise SystemExit()
         logging.debug('\nReading Field List File')
 
