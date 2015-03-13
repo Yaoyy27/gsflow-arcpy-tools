@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW parameter support functions
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-12
+# Created       2015-03-13
 # Python:       2.7
 #--------------------------------
 
@@ -31,18 +31,10 @@ class hru_parameters():
         inputs_cfg = ConfigParser.ConfigParser()
         try:
             inputs_cfg.readfp(open(config_path))
-        except IOError:
-            logging.error(('\nERROR: Config file does not exist\n'+
-                           '  {0}\n').format(field_list_path))
-            raise SystemExit()
-        except ConfigParser.MissingSectionHeaderError:
-            logging.error('\nERROR: Config file is missing a section header\n'+
-                          '    Please make sure the following line is at the '+
-                          'beginning of the file\n[INPUTS]\n')
-            raise SystemExit()
         except:
-            logging.error(('\nERROR: Config file could not be read\n'+
-                           '  {0}\n').format(config_path))
+            logging.error('\nERROR: Config file could not be read, '+
+                          'is not an input file, or does not exist\n'+
+                          'ERROR: config_file = {0}\n').format(config_path)
             raise SystemExit()
         logging.debug('\nReading Input File')
         
@@ -51,18 +43,10 @@ class hru_parameters():
         fields_cfg = ConfigParser.ConfigParser()
         try:
             fields_cfg.readfp(open(field_list_path))
-        except IOError:
-            logging.error(('\nERROR: Field list file does not exist\n'+
-                           '  {0}\n').format(field_list_path))
-            raise SystemExit()
-        except ConfigParser.MissingSectionHeaderError:
-            logging.error('\nERROR: Field list file is missing a section header\n'+
-                          '    Please make sure the following line is at the '+
-                          'beginning of the file\n[FIELDS]\n')
-            raise SystemExit()
         except:
-            logging.error(('\nERROR: Field list file could not be read\n'+
-                           '  {0}\n').format(field_list_path))
+            logging.error('\nERROR: Field list file could not be read, '+
+                          'is not an input file, or does not exist\n'+
+                          'ERROR: field_list_path = {0}\n').format(field_list_path)
             raise SystemExit()
         logging.debug('\nReading Field List File')
 
@@ -387,6 +371,7 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
     ##env.cellSize = hru_param.cs     
 
     ## Only ~65536 objects can be processed by zonal stats
+    data_dict = defaultdict(dict)
     hru_param_count = int(
         arcpy.GetCount_management(polygon_path).getOutput(0))
     block_size = 65000
@@ -406,7 +391,6 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
 
         ## Zonal stats
         logging.debug('    Calculating zonal stats')
-        data_dict = defaultdict(dict)
         for zs_field, (raster_path, zs_stat) in sorted(zs_dict.items()):
             zs_name = '{0}_{1}'.format(zs_field.upper(), i)
             logging.info('    {0}: {1}'.format(zs_stat.upper(), zs_name))
@@ -432,39 +416,37 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
                 else:
                     data_dict[int(row[0])][zs_field] = float(row[1])
             arcpy.Delete_management(zs_obj)
-            ##arcpy.Delete_management(zs_table)
-            del zs_table, zs_obj, fields
-
-        ## Write values to polygon
-        logging.info('    Writing values to polygons')
-        zs_fields = sorted(zs_dict.keys())
-        fields = zs_fields + [hru_param.fid_field]
-        with arcpy.da.UpdateCursor(polygon_path, fields) as u_cursor:
-            for row in u_cursor:
-                ## Create an empty dictionary if FID does not exist
-                ## Missing FIDs did not have zonal stats calculated
-                row_dict = data_dict.get(int(row[-1]), None)
-                for i, zs_field in enumerate(zs_fields):
-                    ## If stats were calculated for only some parameters,
-                    ##   then set missing parameter value to nodata value (-999)
-                    if row_dict:
-                        try:
-                            row[i] = row_dict[zs_field]
-                        except KeyError:
-                            row[i] = nodata_value
-                    ## Otherwise, if no stats were calculated,
-                    ##   reset value to 0 (shapefile default)
-                    else:
-                        row[i] = default_value
-                u_cursor.updateRow(row)
-                del row_dict, row
+            arcpy.Delete_management(zs_table)
+            del zs_table, zs_obj
 
         ## Cleanup
-        del zs_fields, fields, data_dict, subset_str
         if arcpy.Exists(point_subset_path):
             arcpy.Delete_management(point_subset_path)
         if arcpy.Exists(hru_raster_path):
             arcpy.Delete_management(hru_raster_path)
+
+    ## Write values to polygon
+    logging.info('    Writing values to polygons')
+    zs_fields = sorted(zs_dict.keys())
+    fields = zs_fields + [hru_param.fid_field]
+    with arcpy.da.UpdateCursor(polygon_path, fields) as u_cursor:
+        for row in u_cursor:
+            ## Create an empty dictionary if FID does not exist
+            ## Missing FIDs did not have zonal stats calculated
+            row_dict = data_dict.get(int(row[-1]), None)
+            for i, zs_field in enumerate(zs_fields):
+                ## If stats were calculated for only some parameters,
+                ##   then set missing parameter value to nodata value (-999)
+                if row_dict:
+                    try:
+                        row[i] = row_dict[zs_field]
+                    except KeyError:
+                        row[i] = nodata_value
+                ## Otherwise, if no stats were calculated,
+                ##   reset value to 0 (shapefile default)
+                else:
+                    row[i] = default_value
+            u_cursor.updateRow(row)
     arcpy.ClearEnvironment('extent')
     arcpy.ClearEnvironment('outputCoordinateSystem')
     arcpy.ClearEnvironment('cellSize')
