@@ -3,10 +3,11 @@
 # Purpose:      GSFLOW fishnet generator
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-09
+# Created       2015-04-27
 # Python:       2.7
 #--------------------------------
 
+import argparse
 import ConfigParser
 import datetime as dt
 import logging
@@ -24,18 +25,18 @@ from support_functions import *
 
 ################################################################################
 
-def gsflow_fishnet_func(workspace, config_path=None):
+def gsflow_fishnet_func(config_path, overwrite_flag=False, debug_flag=False):
     """GSFLOW Fishnet Generator
 
-    keyword arguments:
-    workspace -- the workspace (path) of the landsat scene folder
-    config_path -- the config file (path)
-
+    Args:
+        config_file: Project config file path
+        ovewrite_flag: boolean, overwrite existing files
+        debug_flag: boolean, enable debug level logging
+    Returns:
+        None
     """
 
     try:
-        logging.info('\nGSFLOW Fishnet Generator')
-
         ## Initialize hru parameters class
         hru = hru_parameters(config_path)
 
@@ -49,6 +50,15 @@ def gsflow_fishnet_func(workspace, config_path=None):
                           'ERROR: config_file = {0}\n').format(config_path)
             raise SystemExit()
         logging.debug('\nReading Input File')
+
+        ## Log DEBUG to file
+        log_file_name = 'gsflow_fishnet_log.txt'
+        log_console = logging.FileHandler(
+            filename=os.path.join(hru.log_ws, log_file_name), mode='w')
+        log_console.setLevel(logging.DEBUG)
+        log_console.setFormatter(logging.Formatter('%(message)s'))
+        logging.getLogger('').addHandler(log_console)
+        logging.info('\nGSFLOW Fishnet Generator')
 
         ## Check input paths
         study_area_path = inputs_cfg.get('INPUTS', 'study_area_path')
@@ -76,7 +86,7 @@ def gsflow_fishnet_func(workspace, config_path=None):
         env.overwriteOutput = True
         env.pyramid = 'PYRAMIDS -1'
         ##env.pyramid = 'PYRAMIDS 0'
-        env.workspace = workspace
+        env.workspace = hru.param_ws
         env.scratchWorkspace = hru.scratch_ws
 
         ## Get spatial reference of study_area
@@ -184,41 +194,44 @@ def build_fishnet_func(hru_polygon_path, hru_point_path, extent, cs, sr):
 
 ################################################################################
 if __name__ == '__main__':
-    workspace = os.getcwd()
-    log_ws = os.path.join(workspace, 'logs')
-    if not os.path.isdir(log_ws): 
-        os.mkdir(log_ws)
-    log_file_name = 'gsflow_fishnet_log.txt'
+    parser = argparse.ArgumentParser(
+        description='Fishnet Generator',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '-i', '--ini', required=True,
+        help='Project input file', metavar='PATH')
+    parser.add_argument(
+        '-o', '--overwrite', default=False, action="store_true", 
+        help='Force overwrite of existing files')
+    parser.add_argument(
+        '--debug', default=logging.INFO, const=logging.DEBUG,
+        help='Debug level logging', action="store_const", dest="loglevel")
+    args = parser.parse_args()
 
     ## Create Basic Logger
-    ##logging.basicConfig(level=logging.DEBUG, format='%(message)s')
-    ## Create File Logger
-    logging.basicConfig(
-        level = logging.DEBUG, format='%(message)s', filemode='w',
-        filename = os.path.join(log_ws, log_file_name))
-    ## Create Display Logger
-    log_console = logging.StreamHandler()
-    log_console.setLevel(logging.INFO)
-    console_format = logging.Formatter('%(message)s')
-    log_console.setFormatter(console_format)
-    logging.getLogger('').addHandler(log_console)
+    logging.basicConfig(level=args.loglevel, format='%(message)s')
 
-    ## Get GSFLOW config file
-    ini_re = re.compile('\w*.ini$', re.I)
-    try: 
-        ini_path = sys.argv[1]
-    except IndexError:
-        ini_path = get_ini_file(workspace, ini_re, 'gsflow_fishnet_generator')
-    del ini_re
+    #### Get GSFLOW config file
+    ##ini_re = re.compile('\w*.ini$', re.I)
+    ##try: 
+    ##    ini_path = sys.argv[1]
+    ##except IndexError:
+    ##    ini_path = get_ini_file(workspace, ini_re, 'gsflow_fishnet_generator')
+    ##del ini_re
 
     ## Run Information
     logging.info('\n{0}'.format('#'*80))
     log_f = '{0:<20s} {1}'
     logging.info(log_f.format(
         'Run Time Stamp:', dt.datetime.now().isoformat(' ')))
-    logging.info(log_f.format('Current Directory:', workspace))
+    logging.info(log_f.format('Current Directory:', os.getcwd()))
     logging.info(log_f.format('Script:', os.path.basename(sys.argv[0])))
-    logging.info(log_f.format('INI File:', os.path.basename(ini_path)))
+
+    ## Convert input file to an absolute path
+    if os.path.isfile(os.path.abspath(args.ini)):
+        args.ini = os.path.abspath(args.ini)
 
     ## Run GSFLOW Fishnet Generator
-    gsflow_fishnet_func(workspace, ini_path)
+    gsflow_fishnet_func(
+        config_path=args.ini, overwrite_flag=args.overwrite,
+        debug_flag=args.loglevel==logging.DEBUG)

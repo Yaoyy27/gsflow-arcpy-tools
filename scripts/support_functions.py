@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW parameter support functions
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-13
+# Created       2015-04-27
 # Python:       2.7
 #--------------------------------
 
@@ -44,6 +44,7 @@ class hru_parameters():
             logging.error(('\nERROR: Config file could not be read\n'+
                            '  {0}\n').format(config_path))
         logging.debug('\nReading Input File')
+        logging.debug('  {}'.format(os.path.basename(config_path)))
         
         ## Open field list config file
         field_list_path =  inputs_cfg.get('INPUTS', 'field_list_path')
@@ -90,6 +91,11 @@ class hru_parameters():
         self.param_ws = inputs_cfg.get('INPUTS', 'parameter_folder')
         if not os.path.isdir(self.param_ws):
             os.mkdir(self.param_ws)
+
+        ## Log workspace
+        self.log_ws = os.path.join(self.param_ws, 'logs')
+        if not os.path.isdir(self.log_ws): 
+            os.mkdir(self.log_ws)
 
         ## Scratch workspace
         try:

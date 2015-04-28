@@ -3,10 +3,11 @@
 # Purpose:      GSFLOW PPT ratio parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-03-08
+# Created       2015-04-27
 # Python:       2.7
 #--------------------------------
 
+import argparse
 from collections import defaultdict
 import ConfigParser
 import datetime as dt
@@ -27,18 +28,18 @@ from support_functions import *
 
 ################################################################################
 
-def gsflow_ppt_ratio_parameters(workspace, config_path=None):
+def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=False):
     """Calculate GSFLOW PPT Ratio Parameters
 
-    keyword arguments:
-    workspace -- the workspace (path) of the landsat scene folder
-    config_path -- the config file (path)
-
+    Args:
+        config_file: Project config file path
+        ovewrite_flag: boolean, overwrite existing files
+        debug_flag: boolean, enable debug level logging
+    Returns:
+        None
     """
 
     try:
-        logging.info('\nGSFLOW PPT Ratio Parameters')
-
         ## Initialize hru_parameters class
         hru = hru_parameters(config_path)
 
@@ -51,7 +52,15 @@ def gsflow_ppt_ratio_parameters(workspace, config_path=None):
                           'is not an input file, or does not exist\n'+
                           'ERROR: config_file = {0}\n').format(config_path)
             raise SystemExit()
-        logging.debug('\nReading Input File')
+
+        ## Log DEBUG to file
+        log_file_name = 'gsflow_ppt_ratio_log.txt'
+        log_console = logging.FileHandler(
+            filename=os.path.join(hru.log_ws, log_file_name), mode='w')
+        log_console.setLevel(logging.DEBUG)
+        log_console.setFormatter(logging.Formatter('%(message)s'))
+        logging.getLogger('').addHandler(log_console)
+        logging.info('\nGSFLOW PPT Ratio Parameters')
 
         ## PPT Zones
         set_ppt_zones_flag = inputs_cfg.getboolean('INPUTS', 'set_ppt_zones_flag')
@@ -293,41 +302,40 @@ def gsflow_ppt_ratio_parameters(workspace, config_path=None):
 ################################################################################
 
 if __name__ == '__main__':
-    workspace = os.getcwd()
-    log_ws = os.path.join(workspace, 'logs')
-    if not os.path.isdir(log_ws): 
-        os.mkdir(log_ws)
-    log_file_name = 'gsflow_ppt_ratio_log.txt'
+    parser = argparse.ArgumentParser(
+        description='PRISM Precipitation Ratio Parameters',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '-i', '--ini', required=True,
+        help='Project input file', metavar='PATH')
+    parser.add_argument(
+        '-o', '--overwrite', default=False, action="store_true", 
+        help='Force overwrite of existing files')
+    parser.add_argument(
+        '--debug', default=logging.INFO, const=logging.DEBUG,
+        help='Debug level logging', action="store_const", dest="loglevel")
+    args = parser.parse_args()
 
     ## Create Basic Logger
-    ##logging.basicConfig(level=logging.DEBUG, format='%(message)s')
-    ## Create File Logger
-    logging.basicConfig(
-        level = logging.DEBUG, format='%(message)s', filemode='w',
-        filename = os.path.join(log_ws, log_file_name))
-    ## Create Display Logger
-    log_console = logging.StreamHandler()
-    log_console.setLevel(logging.INFO)
-    console_format = logging.Formatter('%(message)s')
-    log_console.setFormatter(console_format)
-    logging.getLogger('').addHandler(log_console)
+    logging.basicConfig(level=args.loglevel, format='%(message)s')
 
     ## Get GSFLOW config file
-    ini_re = re.compile('\w*.ini$', re.I)
-    try:
-        ini_path = sys.argv[1]
-    except IndexError:
-        ini_path = get_ini_file(workspace, ini_re, 'gsflow_ppt_ratio_parameters')
-    del ini_re
+    ##ini_re = re.compile('\w*.ini$', re.I)
+    ##try:
+    ##    ini_path = sys.argv[1]
+    ##except IndexError:
+    ##    ini_path = get_ini_file(workspace, ini_re, 'gsflow_ppt_ratio_parameters')
+    ##del ini_re
 
     ## Run Information
     logging.info('\n{0}'.format('#'*80))
     log_f = '{0:<20s} {1}'
     logging.info(log_f.format(
         'Run Time Stamp:', dt.datetime.now().isoformat(' ')))
-    logging.info(log_f.format('Current Directory:', workspace))
+    logging.info(log_f.format('Current Directory:', os.getcwd()))
     logging.info(log_f.format('Script:', os.path.basename(sys.argv[0])))
-    logging.info(log_f.format('INI File:', os.path.basename(ini_path)))
 
     ## Calculate GSFLOW PPT Ratio Parameters
-    gsflow_ppt_ratio_parameters(workspace, ini_path)
+    gsflow_ppt_ratio_parameters(
+        config_path=args.ini, overwrite_flag=args.overwrite,
+        debug_flag=args.loglevel==logging.DEBUG)
