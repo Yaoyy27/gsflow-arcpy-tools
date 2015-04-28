@@ -1,6 +1,28 @@
 #python specific
 *.pyc
+
 # generic files to ignore
 *~
 *.lock
 *.bak
+
+# Project specific files and file types
+*.mxd
+
+# Project specific data folders to ignore
+/crt
+/dem/10m
+/dem/30m
+/docs
+/fishnet_test
+/hru_params
+/impervious
+/invoice
+/landfire
+/naip
+/nhd
+/PRISM_4km_normals
+/PRISM_800m_normals
+/PRISM_800m_extract
+/shapefiles
+/soils

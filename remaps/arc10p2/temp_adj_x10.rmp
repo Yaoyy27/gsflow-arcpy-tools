@@ -1,0 +1,18 @@
+# Flat
+-1 : 0
+# North
+0 : -18
+# North-East
+45 : -10
+# East
+90 : 0
+# South-East
+135 : 10
+# South
+180 : 12
+# South-West
+225 : 18
+# West
+270 : 0
+# North-West
+315 : -10

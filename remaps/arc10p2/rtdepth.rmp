@@ -1,0 +1,188 @@
+# No Data
+0 : 0
+# Mediterranean California Sparsely Vegetated Systems
+3002 : 18
+# North Pacific Oak Woodland
+3008 : 28
+# Central and Southern California Mixed Evergreen Woodland
+3014 : 36
+# California Coastal Redwood Forest
+3015 : 36
+# Klamath-Siskiyou Lower Montane Serpentine Mixed Conifer Woodland
+3021 : 36
+# Mediterranean California Dry-Mesic Mixed Conifer Forest and Woodland
+3027 : 36
+# Mediterranean California Mesic Mixed Conifer Forest and Woodland
+3028 : 36
+# Mediterranean California Mixed Oak Woodland
+3029 : 36
+# Mediterranean California Lower Montane Conifer Forest and Woodland
+3030 : 36
+# California Montane Jeffrey Pine(-Ponderosa Pine) Woodland
+3031 : 36
+# Mediterranean California Red Fir Forest
+3032 : 36
+# Mediterranean California Subalpine Woodland
+3033 : 36
+# Mediterranean California Mixed Evergreen Forest
+3043 : 36
+# Northern California Mesic Subalpine Woodland
+3044 : 36
+# Sonora-Mojave Mixed Salt Desert Scrub
+3088 : 28
+# California Maritime Chaparral
+3096 : 28
+# California Mesic Chaparral
+3097 : 28
+# California Montane Woodland and Chaparral
+3098 : 28
+# California Xeric Serpentine Chaparral
+3099 : 28
+# Northern and Central California Dry-Mesic Chaparral
+3105 : 28
+# Sonora-Mojave Semi-Desert Chaparral
+3108 : 28
+# California Central Valley Mixed Oak Savanna
+3112 : 28
+# California Coastal Live Oak Woodland and Savanna
+3113 : 28
+# California Lower Montane Foothill Pine Woodland and Savanna
+3114 : 36
+# Northern California Coastal Scrub
+3128 : 18
+# California Mesic Serpentine Grassland
+3130 : 18
+# California Northern Coastal Grassland
+3131 : 18
+# North Pacific Montane Grassland
+3138 : 18
+# California Central Valley Riparian Forest and Woodland
+3151 : 28
+# California Montane Riparian Systems
+3152 : 28
+# Pacific Coastal Marsh Systems
+3163 : 18
+# Klamath-Siskiyou Xeromorphic Serpentine Savanna and Chaparral
+3170 : 28
+# California Coastal Closed-Cone Conifer Forest and Woodland
+3177 : 36
+# Introduced Upland Vegetation-Perennial Grassland and Forbland
+3182 : 18
+# California Annual Grassland
+3184 : 18
+# Quercus garryana Woodland Alliance
+3201 : 28
+# Pinus sabiniana Woodland Alliance
+3230 : 36
+# California Central Valley Riparian Herbaceous
+3257 : 18
+# Mediterranean California Lower Montane Black Oak Forest and Woodland
+3260 : 28
+# Mediterranean California Lower Montane Black Oak - Conifer Forest and Woodland
+3261 : 28
+# California Lower Montane Blue Oak Forest and Woodland
+3264 : 36
+# California Lower Montane Blue Oak-Foothill Pine Forest and Woodland
+3265 : 28
+# Open Water
+3292 : 0
+# Barren
+3294 : 0
+# Quarries-Strip Mines-Gravel Pits
+3295 : 0
+# Developed-Low Intensity
+3296 : 0
+# Developed-Medium Intensity
+3297 : 0
+# Developed-High Intensity
+3298 : 0
+# Developed-Roads
+3299 : 0
+# Western Cool Temperate Urban Deciduous Forest
+3900 : 28
+# Western Cool Temperate Urban Evergreen Forest
+3901 : 36
+# Western Cool Temperate Urban Mixed Forest
+3902 : 28
+# Western Cool Temperate Urban Herbaceous
+3903 : 18
+# Western Cool Temperate Urban Shrubland
+3904 : 28
+# Western Warm Temperate Urban Deciduous Forest
+3910 : 28
+# Western Warm Temperate Urban Evergreen Forest
+3911 : 36
+# Western Warm Temperate Urban Mixed Forest
+3912 : 28
+# Western Warm Temperate Urban Herbaceous
+3913 : 18
+# Western Warm Temperate Urban Shrubland
+3914 : 28
+# Western Cool Temperate Developed Ruderal Deciduous Forest
+3920 : 28
+# Western Cool Temperate Developed Ruderal Evergreen Forest
+3921 : 36
+# Western Cool Temperate Developed Ruderal Mixed Forest
+3922 : 28
+# Western Cool Temperate Developed Ruderal Shrubland
+3923 : 28
+# Western Cool Temperate Developed Ruderal Grassland
+3924 : 18
+# Western Warm Temperate Developed Ruderal Deciduous Forest
+3925 : 28
+# Western Warm Temperate Developed Ruderal Evergreen Forest
+3926 : 36
+# Western Warm Temperate Developed Ruderal Mixed Forest
+3927 : 28
+# Western Warm Temperate Developed Ruderal Shrubland
+3928 : 28
+# Western Warm Temperate Developed Ruderal Grassland
+3929 : 18
+# Western Cool Temperate Undeveloped Ruderal Deciduous Forest
+3940 : 28
+# Western Cool Temperate Undeveloped Ruderal Evergreen Forest
+3941 : 36
+# Western Cool Temperate Undeveloped Ruderal Mixed Forest
+3942 : 28
+# Western Cool Temperate Undeveloped Ruderal Shrubland
+3943 : 28
+# Western Cool Temperate Undeveloped Ruderal Grassland
+3944 : 18
+# Western Warm Temperate Undeveloped Ruderal Deciduous Forest
+3945 : 28
+# Western Warm Temperate Undeveloped Ruderal Evergreen Forest
+3946 : 36
+# Western Warm Temperate Undeveloped Ruderal Mixed Forest
+3947 : 28
+# Western Warm Temperate Undeveloped Ruderal Shrubland
+3948 : 28
+# Western Warm Temperate Undeveloped Ruderal Grassland
+3949 : 18
+# Western Cool Temperate Orchard
+3960 : 28
+# Western Cool Temperate Vineyard
+3961 : 28
+# Western Cool Temperate Row Crop
+3964 : 18
+# Western Cool Temperate Close Grown Crop
+3965 : 18
+# Western Cool Temperate Fallow/Idle Cropland
+3966 : 18
+# Western Cool Temperate Pasture and Hayland
+3967 : 18
+# Western Cool Temperate Wheat
+3968 : 18
+# Western Warm Temperate Orchard
+3980 : 28
+# Western Warm Temperate Vineyard
+3981 : 28
+# Western Warm Temperate Row Crop
+3984 : 18
+# Western Warm Temperate Close Grown Crop
+3985 : 18
+# Western Warm Temperate Fallow/Idle Cropland
+3986 : 18
+# Western Warm Temperate Pasture and Hayland
+3987 : 18
+# Western Warm Temperate Wheat
+3988 : 18

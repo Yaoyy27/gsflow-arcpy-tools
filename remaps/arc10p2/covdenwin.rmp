@@ -1,0 +1,10 @@
+# Bare
+0 : 00
+# Grass
+1 : 60
+# Shrub
+2 : 40
+# Deciduous Trees
+3 : 50
+# Coniferous Trees
+4 : 100

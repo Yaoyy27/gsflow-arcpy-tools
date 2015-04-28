@@ -32,4 +32,4 @@ PRISM precipitation, minimum temperature, and maximum temperature 30 year normal
 #####CRT
 User must have [Cascade Routing Tool](http://water.usgs.gov/ogw/CRT/) (CRT) version 1.1.1.
 #####Remap files
-Example remap files are provided, although it may be necessary to modify these to include new or missing LANDFIRE vegetation types.  In versions of ArcGIS before 10.2, you could have comments after the values (indicated by a /*) but this was removed in 10.2.  The easiest solution is to remove all comments and white space after the values.  The 10.2 versions should probably be made the default with comments listed below the values. 
+Example ASCII remap files are provided, although it may be necessary to modify these to include new or missing LANDFIRE vegetation types.  In versions of ArcGIS before 10.2, you could have comments after the values (indicated by a /*) but this was removed in 10.2.  Now, comments must be on a separate line and begin with the "#" symbol.  The convert_remap_10p2.py script will convert the ArcGIS 10.1 style ASCII remap files to the ArcGIS 10.2 style.
