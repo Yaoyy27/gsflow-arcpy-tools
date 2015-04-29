@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW parameter support functions
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-04-27
+# Created       2015-04-29
 # Python:       2.7
 #--------------------------------
 
@@ -72,6 +72,7 @@ class hru_parameters():
         self.cs      = inputs_cfg.getint('INPUTS', 'hru_cellsize')
         self.ref_x   = inputs_cfg.getfloat('INPUTS', 'hru_ref_x')
         self.ref_y   = inputs_cfg.getfloat('INPUTS', 'hru_ref_y')
+        self.ref_pnt = arcpy.Point(self.ref_x, self.ref_y)
         ##self.ref_x   = inputs_cfg.getint('INPUTS', 'hru_ref_x')
         ##self.ref_y   = inputs_cfg.getint('INPUTS', 'hru_ref_y')
         self.buffer_cells = inputs_cfg.getint('INPUTS', 'hru_buffer_cells')
@@ -120,14 +121,27 @@ class hru_parameters():
         ## Set spatial reference of hru shapefile
         if arcpy.Exists(self.polygon_path):
             hru_desc = arcpy.Describe(self.polygon_path)
-            self.sr = hru_desc.spatialReference
-            self.extent = adjust_extent_to_snap(
-                hru_desc.extent, arcpy.Point(self.ref_x, self.ref_y), self.cs, 'ROUND')
-            ##self.extent = adjust_extent_to_snap(
-            ##    hru_param_desc.extent, snap_pnt, self.cs, 'ROUND')
+            self.sr = hru_desc.spatialReference            
+            self.extent = round_extent(hru_desc.extent, 6)
+            logging.info('  Fishnet extent:     {0}'.format(extent_string(self.extent)))          
             logging.debug('  Fishnet spat. ref.: {0}'.format(self.sr.name))
             logging.debug('  Fishnet GCS:        {0}'.format(self.sr.GCS.name))
-            logging.info('  Fishnet extent:     {0}'.format(extent_string(self.extent)))          
+
+            ## Check that the fishnet is snapped to the reference point
+            if not snapped(self.extent, self.ref_pnt, self.cs):
+                logging.error(
+                    ('\nWARNING: {0} does not appear to be snapped to the INI '+
+                     'file reference point\n  This may be a rounding issue.').format(
+                        os.path.basename(self.polygon_path)))
+                raw_input('Press ENTER to continue')
+
+            ## DEADBEEF - I'm not sure why I would adjust the extent
+            ## If the extent doesn't match the refence point, the script
+            ##   should probably terminate
+            ##self.extent = adjust_extent_to_snap(
+            ##    hru_desc.extent, self.ref_pnt, self.cs, 'ROUND')
+            ##self.extent = adjust_extent_to_snap(
+            ##    hru_param_desc.extent, snap_pnt, self.cs, 'ROUND')
 
         ## Some fields are dependent on the control flags
         set_lake_flag = inputs_cfg.getboolean('INPUTS', 'set_lake_flag')
@@ -475,6 +489,11 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
 def extent_string(extent_obj):
     return ' '.join(str(extent_obj).split()[:4])
     ##return ' '.join(['{0:.4f}'.format(s) for s in str(extent_obj).split()[:4]])
+
+def round_extent(extent_obj, n=10):
+    return arcpy.Extent(
+        round(extent_obj.XMin, n), round(extent_obj.YMin, n),
+        round(extent_obj.XMax, n), round(extent_obj.YMax, n))
 
 ## This adjusts one extent to a snap point
 ## This is similar to the GDAL implementation
