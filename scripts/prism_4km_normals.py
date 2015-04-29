@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW PRISM parameters from default 400m normals 
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-04-27
+# Created       2015-04-29
 # Python:       2.7
 #--------------------------------
 
@@ -99,7 +99,7 @@ def gsflow_prism_parameters(config_path, data_name='ALL',
         arcpy.CheckOutExtension('Spatial')
         env.overwriteOutput = True
         env.pyramid = 'PYRAMIDS 0'
-        env.workspace = workspace
+        env.workspace = hru.param_ws
         env.scratchWorkspace = hru.scratch_ws      
 
         ## PRISM data names
@@ -123,12 +123,35 @@ def gsflow_prism_parameters(config_path, data_name='ALL',
         logging.info('\nProjecting/clipping PRISM mean monthly rasters')
         for data_name in data_name_list:
             logging.info('\n{0}'.format(data_name))
-            ## PRISM input data workspace
-            input_ws = os.path.join(prism_ws, data_name.lower())
-            if not os.path.isdir(input_ws):
-                logging.error('\nERROR: The PRISM {0} folder does not exist'.format(
-                    data_name.lower()))
+            prism_normal_re = re.compile(
+                'PRISM_(%s)_30yr_normal_4kmM2_(?P<month>\d{2})_bil.*$' % '|'.join(data_name_list),
+                re.IGNORECASE)
+
+            ## Search all files & subfolders in prism folder
+            ##   for images that match data type
+            input_raster_dict = dict()
+            for root, dirs, files in os.walk(prism_ws):
+                for file_name in files:
+                    prism_normal_match = prism_normal_re.match(file_name)
+                    if prism_normal_match and file_name.endswith('.bil'):
+                        month_str = prism_normal_match.group('month')
+                        input_raster_dict[month_str] = os.path.join(
+                            prism_ws, root, file_name)
+            if not input_raster_dict:
+                logging.error(
+                    ('\nERROR: No PRISM rasters were found matching the '+
+                     'following pattern:\n  {0}\n\nDouble check that the script '+
+                     'and folder are for the same resolution '+
+                     '(800m vs 4km)\n\n').format(prism_normal_re.pattern))
+                logging.error()
                 raise SystemExit()
+
+            ## PRISM input data workspace
+            ##input_ws = os.path.join(prism_ws, data_name.lower())
+            ##if not os.path.isdir(input_ws):
+            ##    logging.error('\nERROR: The PRISM {0} folder does not exist'.format(
+            ##        data_name.lower()))
+            ##    raise SystemExit()
 
             ## PRISM output data workspace
             output_ws = os.path.join(
@@ -138,9 +161,6 @@ def gsflow_prism_parameters(config_path, data_name='ALL',
 
             ## Remove all non year/month rasters in PRISM temp folder
             logging.info('  Removing existing PRISM files')
-            prism_normal_re = re.compile(
-                '^PRISM_(%s)_30yr_normal_4kmM2_(\d{2})_bil.*$' % '|'.join(data_name_list),
-                re.IGNORECASE)
             for item in os.listdir(output_ws):
                 if prism_normal_re.match(item):
                     os.remove(os.path.join(output_ws, item))
@@ -153,11 +173,12 @@ def gsflow_prism_parameters(config_path, data_name='ALL',
                 logging.info('  Month: {0}'.format(month))
 
                 ## Projected/clipped PRISM raster
-                input_name = 'PRISM_{0}_30yr_normal_4kmM2_{1}_bil.bil'.format(
-                    data_name.lower(), input_month)
+                input_raster = input_raster_dict[month]
+                ##input_name = 'PRISM_{0}_30yr_normal_4kmM2_{1}_bil.bil'.format(
+                ##    data_name.lower(), input_month)
+                ##input_raster = os.path.join(input_ws, input_name)
                 output_name = 'PRISM_{0}_30yr_normal_4kmM2_{1}.img'.format(
                     data_name.lower(), month)
-                input_raster = os.path.join(input_ws, input_name)
                 output_raster = os.path.join(output_ws, output_name)
 
                 ## Set preferred transforms
@@ -183,8 +204,7 @@ def gsflow_prism_parameters(config_path, data_name='ALL',
                 zs_prism_dict[zs_field] = [output_raster, 'MEAN']
 
                 ## Cleanup
-                del input_raster, output_raster
-                del input_name, output_name
+                del input_raster, output_raster, output_name
                 del input_sr, transform_str, zs_field
 
             ## Cleanup
@@ -232,7 +252,7 @@ if __name__ == '__main__':
         '-i', '--ini', required=True,
         help='Project input file', metavar='PATH')
     parser.add_argument(
-        '--type', defaul='ALL', 
+        '--type', default='ALL', 
         help='PRISM Data Type (TMAX, TMIN, PPT, ALL)')
     parser.add_argument(
         '-o', '--overwrite', default=False, action="store_true", 
