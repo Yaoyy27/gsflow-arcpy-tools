@@ -393,6 +393,12 @@ def zonal_stats_func(zs_dict, polygon_path, point_path, hru_param,
              '\nERROR: Try deleting the centroids (i.e. "_label.shp") and '+
              'rerunning gsflow_hru_parameters.py\n').format(hru_param.fid_field))
         raise SystemExit()
+    ## Check for duplicate ORIG_FID values
+    fid_list = [r[0] for r in arcpy.da.SearchCursor(point_path, [hru_param.fid_field])]
+    if len(fid_list) != len(set(fid_list)):
+        logging.error(
+            ('\nERROR: There are duplicate {0} values\n').format(hru_param.fid_field))
+        raise SystemExit()
         
     ## Create memory objects
     point_subset_path = os.path.join('in_memory', 'point_subset')
