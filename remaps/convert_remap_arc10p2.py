@@ -2,7 +2,7 @@
 # Name:         convert_remap_arc10p2.py
 # Purpose:      PRMS Remap Modfiy
 # Author:       Charles Morton
-# Created       2015-04-27
+# Created       2015-04-30
 # Python:       2.7
 #--------------------------------
 
@@ -42,25 +42,38 @@ def prms_remap_modify(remap_folder):
                 continue           
             logging.debug('  Modifying: {0}'.format(remap_name))
             with open(remap_input_path, 'r') as remap_f:
-                remap_lines = remap_f.readlines()
+                input_lines = remap_f.readlines()
+
+            ## Separate remap values and comments
+            remap_lines, comment_lines = [], []
+            for i, line in enumerate(input_lines):
+                ## Remove newline characters and extra leading/trailing whitespace
+                line_split = [x.strip() for x in line.strip().split('/*')]
+                ## Comments will result in line_split have two items
+                if len(line_split) == 2:
+                    comment_lines.append('# {0} - {1}'.format(
+                        line_split[0].split(':')[0].strip(), line_split[1]))
+                if line_split:
+                    remap_lines.append(' : '.join([x.strip() for x in line_split[0].split(':')]))
+
+            ## First write the remap values,
+            ## Then write the comments (if there are any)
             with open(remap_output_path, 'w') as remap_f:
                 for i, line in enumerate(remap_lines):
-                    ## Remove newline characters and extra leading/trailing whitespace
-                    line_split = [x.strip() for x in line.strip().split('/*')]
-                    
-                    ## Comments will result in line_split have two items
-                    ## Write the comment first
-                    if len(line_split) == 2:
-                        remap_f.write('# ' + line_split[1] + '\n')
-                        
-                    ## Then write the remap values
-                    if line_split:
-                        remap_f.write(
-                            ' : '.join([x.strip() for x in line_split[0].split(':')]))
-                        
+                    remap_f.write(line)     
                     ## Don't write newline character on last line
                     ## This causes an error in ArcGIS 10.2.2
-                    if (i+1) == len(remap_lines):
+                    if (i+1) == len(remap_lines) and not comment_lines:
+                        break
+                    remap_f.write('\n')
+
+                for i, line in enumerate(comment_lines):
+                    ## Replace California with abbreviation
+                    ## Limit comments to 80 characters
+                    remap_f.write(line.replace('California', 'CA')[:80])
+                    ## Don't write newline character on last line
+                    ## This causes an error in ArcGIS 10.2.2
+                    if (i+1) == len(comment_lines):
                         break
                     remap_f.write('\n')
 
