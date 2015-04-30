@@ -1,24 +1,26 @@
-0   : 0    /*No data
-11  : 0    /*Open Water                       
-12  : 0    /*Snow/Ice                         
+0   : 0     /*No data
+11  : 0     /*Open Water                       
+12  : 0     /*Snow/Ice                         
 13  : 50    /*Developed-Upland Deciduous Forest
 14  : 60    /*Developed-Upland Evergreen Forest
 15  : 55    /*Developed-Upland Mixed Forest    
 16  : 45    /*Developed-Upland Herbaceous      
 17  : 35    /*Developed-Upland Shrubland       
 22  : 10    /*Developed - Low Intensity
-23  : 5    /*Developed - Medium Intensity     
-24  : 0    /*Developed - High Intensity       
-25  : 0    /*Developed-Roads                  
-31  : 0    /*Barren                           
-32  : 0    /*Quarries-Strip Mines-Gravel Pits 
+23  : 5     /*Developed - Medium Intensity     
+24  : 0     /*Developed - High Intensity       
+25  : 0     /*Developed-Roads                  
+31  : 0     /*Barren                           
+32  : 0     /*Quarries-Strip Mines-Gravel Pits 
 60  : 80    /*NASS-Orchard                     
 61  : 80    /*NASS-Vineyard                    
 63  : 80    /*NASS-Row Crop-Close Grown Crop   
 64  : 80    /*NASS-Row Crop                    
 65  : 80    /*NASS-Close Grown Crop            
 66  : 80    /*NASS-Pasture and Hayland         
-67  : 80    /*NASS-Pasture and Hayland         
+67  : 80    /*NASS-Pasture and Hayland      
+68  : 80    /*NASS-Wheat
+69  : 70    /*NASS-Aquaculture   
 75  : 60    /*Herbaceous Semi-dry              
 76  : 60    /*Herbaceous Semi-wet              
 81  : 80    /*Pasture/Hay                      
