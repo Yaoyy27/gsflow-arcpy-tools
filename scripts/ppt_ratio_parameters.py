@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW PPT ratio parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-04-27
+# Created       2015-04-30
 # Python:       2.7
 #--------------------------------
 
@@ -62,6 +62,17 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
         logging.getLogger('').addHandler(log_console)
         logging.info('\nGSFLOW PPT Ratio Parameters')
 
+        ## Units
+        ppt_obs_units = get_param('ppt_obs_units', 'mm', inputs_cfg).lower()
+        ppt_units_list = ['mm', 'cm', 'm', 'in', 'ft']
+        ## Compare against the upper case of the values in the list
+        ##   but don't modify the acceptable units list
+        if ppt_obs_units not in ppt_units_list:
+           logging.warning(
+               ('WARNING: Invalid PPT obs. units ({0})\n  '+
+                'Valid units are: {1}').format(
+               ppt_obs_units, ', '.join(ppt_units_list)))
+        
         ## PPT Zones
         set_ppt_zones_flag = inputs_cfg.getboolean('INPUTS', 'set_ppt_zones_flag')
         if set_ppt_zones_flag:
@@ -88,10 +99,6 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
                     '\nERROR: There must be exactly 12 mean monthly '+
                     'observed precipitation values based to ppt_obs_list')
                 raise SystemExit()
-            logging.info(
-                ('  Mean Monthly PPT:\n    {0}\n    (Script will '+
-                'assume these are listed in month order, i.e. Jan, '+
-                 'Feb, ...)').format(ppt_obs_list))
             ## Check that HRU_ID is valid
             logging.info('  PPT HRU_ID: {0}'.format(ppt_hru_id))
             if ppt_hru_id in [int(row[0]) for row in sorted(
@@ -99,15 +106,36 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
                 logging.error(
                     ('\nERROR: ppt_ratios will not be forced to 1'+
                      ' at cell {0}').format(ppt_hru_id))
+            elif ppt_hru_id == 0:
+                logging.info(
+                    '    Assuming ppt_ratios should not be forced to 1 at a cell')
             else:
                 ppt_hru_id = 0
-                logging.error(
-                    '\nERROR: The ppt_hru_id appears to be invalid...'+
-                    '\nERROR: The ppt_ratios will not be forced to 1 at a cell')
-                ##raise SystemExit()
-                
-        
-        ## Check input paths
+                logging.warning(
+                    '\nWARNING: The ppt_hru_id appears to be invalid...'+
+                    '\nWARNING: The ppt_ratios will not be forced to 1 at a cell')
+            logging.info(
+                ('  Observed Mean Monthly PPT ({0}):\n    {1}\n    (Script '+
+                 'will assume these are listed in month order, i.e. Jan, '+
+                 'Feb, ...)').format(ppt_obs_units, ppt_obs_list))
+            ## Convert units while reading obs values
+            if ppt_obs_units == 'mm':
+                factor = 1
+            elif ppt_obs_units == 'cm':
+                factor = 10
+            elif ppt_obs_units == 'm':
+                factor = 1000
+            elif ppt_obs_units == 'in':
+                factor = 25.4
+            elif ppt_obs_units == 'ft':
+                factor = 304.8
+            if factor <> 1:
+                ppt_obs_list = [p * factor for p in ppt_obs_list]
+                logging.info(
+                    '\n  Converted Mean Monthly PPT ({0}):\n    {1}'.format(
+                        ppt_obs_units, ppt_obs_list))
+
+                        ## Check input paths
         if not arcpy.Exists(hru.polygon_path):
             logging.error(
                 '\nERROR: Fishnet ({0}) does not exist'.format(
@@ -164,7 +192,7 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
         env.overwriteOutput = True
         ##env.pyramid = 'PYRAMIDS -1'
         env.pyramid = 'PYRAMIDS 0'
-        env.workspace = workspace
+        env.workspace = hru.param_ws
         env.scratchWorkspace = hru.scratch_ws
 
         ## Set month list based on flags
@@ -244,7 +272,19 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
             ppt_obs_dict = dict()
             with arcpy.da.SearchCursor(ppt_zone_path, fields) as s_cursor:
                 for row in s_cursor:
-                    ppt_obs_dict[row[-1]] = map(float, row[:-1])
+                    ## Convert units while reading obs values
+                    value = map(float, row[:-1])
+                    if ppt_obs_units == 'mm':
+                        value *= 1
+                    elif ppt_obs_units == 'cm':
+                        value *= 10
+                    elif ppt_obs_units == 'm':
+                        value *= 1000
+                    elif ppt_obs_units == 'in':
+                        value *= 25.4
+                    elif ppt_obs_units == 'ft':
+                        value *= 304.8
+                    ppt_obs_dict[row[-1]] = value
             fields = ppt_field_list + ratio_field_list + [hru.ppt_zone_id_field]
             with arcpy.da.UpdateCursor(hru.polygon_path, fields) as u_cursor:
                 for row in u_cursor:
@@ -263,20 +303,24 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
             ## Get PRISM precip at PPT_HRU_ID
             fields = [hru.id_field] + ppt_field_list
             logging.debug('  Fields: {0}'.format(', '.join(fields)))
-            ## If ppt_hru_id was not set, use ppt_obs_list
+
+            ## Scale all ratios so PRISM will match observed at a target cell
             if ppt_hru_id <> 0:
                 ppt_prism_list = map(float, arcpy.da.SearchCursor(
                     hru.polygon_path, fields,
                     '"{0}" = {1}'.format(hru.id_field, ppt_hru_id)).next()[1:])
+                logging.info('  PRISM PPT: {0}'.format(
+                    ', '.join(['{0:.2f}'.format(p) for p in ppt_prism_list])))
+                ## Ratio of MEASURED/OBSERVED PPT to PRISM PPT
+                ## This will be multiplied by PRISM/OBSERVED below
+                ppt_ratio_list = [
+                    float(o) / p if p > 0 else 0
+                    for o, p in zip(ppt_obs_list, ppt_prism_list)]
+                logging.info('  Obs./PRISM: {0}'.format(
+                    ', '.join(['{0:.3f}'.format(p) for p in ppt_ratio_list])))
             else:
-                ppt_prism_list = ppt_obs_list[:]
-            logging.info('  PRISM PPT: {0}'.format(
-                ', '.join(['{0:.2f}'.format(p) for p in ppt_prism_list])))
-            ## Calculate ratio of PRISM PPT and MEASURED PPT
-            ppt_ratio_list = [
-                float(o)/p for o,p in zip(ppt_obs_list, ppt_prism_list)]
-            logging.info('  Obs./PRISM: {0}'.format(
-                ', '.join(['{0:.3f}'.format(p) for p in ppt_ratio_list])))
+                ppt_ratio_list = [1 for p in ppt_obs_list]
+                
             ## Use single mean monthly PPT for all cells
             ## Assume ppt_obs_list is in month order
             fields = ppt_field_list + ratio_field_list
@@ -285,8 +329,9 @@ def gsflow_ppt_ratio_parameters(config_path, overwrite_flag=False, debug_flag=Fa
                     for i, month in enumerate(month_list):
                         ppt_i = fields.index('PPT_{0}'.format(month))
                         ratio_i = fields.index('PPT_RT_{0}'.format(month))
-                        row[ratio_i] = (
-                            ppt_ratio_list[i] * row[ppt_i] / ppt_obs_list[i])
+                        if ppt_obs_list[i] > 0:
+                            row[ratio_i] = (
+                                ppt_ratio_list[i] * row[ppt_i] / ppt_obs_list[i])
                     u_cursor.updateRow(row)
                 del row
 

@@ -1,0 +1,4 @@
+CGM 2015-03-08
+Convert soil shapefiles to raster
+Check other scripts for METER vs. FOOT issues
+Check/get latest remaps from Murphy
