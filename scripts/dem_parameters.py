@@ -122,26 +122,48 @@ def gsflow_dem_parameters(config_path, overwrite_flag=False, debug_flag=False):
         ## Check input paths
         if not arcpy.Exists(hru.polygon_path):
             logging.error(
-                '\nERROR: Fishnet ({0}) does not exist'.format(hru.polygon_path))
+                '\nERROR: Fishnet ({0}) does not exist\n'.format(hru.polygon_path))
             raise SystemExit()
         ## Check that either the original DEM raster exists
         if not arcpy.Exists(dem_orig_path):
             logging.error(
-                '\nERROR: DEM ({0}) raster does not exist'.format(dem_orig_path))
+                '\nERROR: DEM ({0}) raster does not exist\n'.format(dem_orig_path))
             raise SystemExit()
         ## Check that remap folder is valid
         if not os.path.isdir(remap_ws):
-            logging.error('\nERROR: Remap folder does not exist')
+            logging.error('\nERROR: Remap folder does not exist\n')
             raise SystemExit()
         ## Check that remap files exist
+        ## Check remap files comment style
         aspect_remap_path = os.path.join(remap_ws, aspect_remap_name)
         temp_adj_remap_path = os.path.join(remap_ws, temp_adj_remap_name)
-        if not os.path.isfile(aspect_remap_path):
-            logging.error('\nERROR: Aspect remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(temp_adj_remap_path):
-            logging.error('\nERROR: Temperature adjust remap file does not exist')
-            raise SystemExit()
+        remap_path_list = [aspect_remap_path, temp_adj_remap_path]
+        for remap_path in remap_path_list:
+            remap_check(remap_path)
+
+        ## DEADBEEF
+        ##if not os.path.isfile(aspect_remap_path):
+        ##    logging.error(
+        ##        '\nERROR: ASCII remap file ({0}) does not exist\n'.format(
+        ##            os.path.basename(aspect_remap_path)))
+        ##    raise SystemExit()
+        ##if not os.path.isfile(temp_adj_remap_path):
+        ##    logging.error(
+        ##        '\nERROR: ASCII remap file ({0}) does not exist\n'.format(
+        ##            os.path.basename(temp_adj_remap_path)))
+        ##    raise SystemExit()
+        #### Check remap files comment style
+        ##if '10.2' in arcpy.GetInstallInfo()['version']:
+        ##    if remap_comment_check(aspect_remap_path):
+        ##        logging.error(
+        ##            ('\nERROR: ASCII remap file ({0}) has pre-ArcGIS 10.2 '+
+        ##             'comments\n').format(os.path.basename(aspect_remap_path)))
+        ##        raise SystemExit()
+        ##    if remap_comment_check(temp_adj_remap_path):
+        ##        logging.error(
+        ##            ('\nERROR: ASCII remap file ({0}) has pre-ArcGIS 10.2 '+
+        ##             'comments\n').format(os.path.basename(temp_adj_remap_path)))
+        ##        raise SystemExit()
 
         ## Check other inputs
         if dem_cs <= 0:
@@ -338,7 +360,7 @@ def gsflow_dem_parameters(config_path, overwrite_flag=False, debug_flag=False):
         ##    dem_aspect_reclass_path, temp_adj_remap_path)
         temp_adj_obj.save(temp_adj_path)
         del temp_adj_obj
-        
+
 
         ## List of rasters, fields, and stats for zonal statistics
         zs_dem_dict = dict()

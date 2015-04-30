@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW parameter support functions
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-04-29
+# Created       2015-04-30
 # Python:       2.7
 #--------------------------------
 
@@ -597,7 +597,7 @@ def get_ini_file(workspace, ini_re, function_str='function'):
     print '{0:<20s} {1}'.format('INI File Name:', config_filename)
     return config_filepath
 
-def get_param(param_str, param_default, config, section):
+def get_param(param_str, param_default, config, section='INPUTS'):
     param_type = type(param_default)
     try:
         if param_type is float:
@@ -864,6 +864,64 @@ def jensen_haise_func(
 
 ################################################################################
 
+def remap_check(remap_path):
+    ## Check that the file exists
+    if not os.path.isfile(remap_path):
+        logging.error(
+            '\nERROR: ASCII remap file ({0}) does not exist\n'.format(
+                os.path.basename(remap_path)))
+        raise SystemExit()
+    
+    ## Read in the remap
+    with open(remap_path, 'r') as remap_f:
+        remap_lines = remap_f.readlines()
+        line_count = len(remap_lines)
+
+    ## Problems reading/applying ASCII remap files can be caused by:
+    ##   Blank lines
+    ##   Empty lines at the end (from a final newline character)
+    ##   ArcGIS 10.2 - Old style in line comments (/*)
+    ##   ArcGIS 10.2 - Comments can't be in first line (?)
+    ##   ArcGIS 10.2 - Comments can't be longer than 80 characters (?)
+    ## If either of these are present in the file, resave the filtered lines
+
+    ## Check for old style comments (/*) in ASCII remap files
+    ## This could be changed to save the comments at the end of the file
+    if arcpy.GetInstallInfo()['Version'].startswith('10.2'):
+        if any([l for l in remap_lines if '/*' in l]):
+            logging.error(
+                    ('\nERROR: ASCII remap file ({0}) has pre-ArcGIS 10.2 '+
+                     'comments (\*)\n  Try running the "convert_remap_arc10p2.py"'+
+                     'script\n').format(os.path.basename(remap_path)))
+            raise SystemExit()
+
+    ## First check for final newline character
+    save_flag = False
+    if remap_lines[-1] and remap_lines[-1].endswith('\n'):
+        save_flag = True
+
+    ## Then remove empty lines and strip white space and newline characters
+    ## If lines were removed, resave the filtered remap file
+    remap_lines = [l.strip() for l in remap_lines]
+    remap_lines = [l for l in remap_lines if l]
+    if len(remap_lines) <> line_count:
+        save_flag = True
+
+    ## If lines were removed, resave the filtered remap file
+    if save_flag:
+        logging.warning(
+            ('\nWARNING: The ASCII remap file ({0}) had empty lines that will '+
+             'be removed\n').format(os.path.basename(remap_path)))
+        with open(remap_path, 'w') as remap_f:
+            for i, line in enumerate(remap_lines):
+                ## Don't write newline character on last line
+                ## This causes an error in ArcGIS 10.2.2
+                if (i+1) < len(lines):
+                    remap_f.write(line + '\n')
+                else:
+                    remap_f.write(line)
+    return True
+
 #### Remap aspect
 ##logging.info('\nRemapping Aspect to HRU_ASPECT')
 ##arcpy.CalculateField_management(
@@ -871,10 +929,10 @@ def jensen_haise_func(
 ##    'Reclass(!{0}!)'.format(dem_aspect_field),
 ##    'PYTHON', remap_code_block(aspect_remap_path))
 ####arcpy.DeleteField_management(polygon_path, dem_aspect_field)
+    
 def remap_code_block(remap_path):
-    ## Read remap file into memory
-    with open(remap_path) as remap_f: lines = remap_f.readlines()
-    remap_f.close()
+    with open(remap_path) as remap_f:
+        lines = remap_f.readlines()
     remap_cb = ''
     for l in lines:
         ## Skip comment lines

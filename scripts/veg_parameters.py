@@ -3,7 +3,7 @@
 # Purpose:      GSFLOW vegetation parameters
 # Notes:        ArcGIS 10.2 Version
 # Author:       Charles Morton
-# Created       2015-04-27
+# Created       2015-04-30
 # Python:       2.7
 #--------------------------------
 
@@ -117,6 +117,7 @@ def gsflow_veg_parameters(config_path, overwrite_flag=False, debug_flag=False):
             logging.error('\nERROR: Remap folder does not exist')
             raise SystemExit()
         ## Check that remap files exist
+        ## Check remap files comment style
         cov_type_remap_path = os.path.join(remap_ws, cov_type_remap_name)
         covden_sum_remap_path = os.path.join(remap_ws, covden_sum_remap_name)
         covden_win_remap_path = os.path.join(remap_ws, covden_win_remap_name)
@@ -124,27 +125,35 @@ def gsflow_veg_parameters(config_path, overwrite_flag=False, debug_flag=False):
         srain_intcp_remap_path = os.path.join(remap_ws, srain_intcp_remap_name)
         wrain_intcp_remap_path = os.path.join(remap_ws, wrain_intcp_remap_name)
         root_depth_remap_path = os.path.join(remap_ws, root_depth_remap_name)
-        if not os.path.isfile(cov_type_remap_path):
-            logging.error('\nERROR: Cover type remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(covden_sum_remap_path):
-            logging.error('\nERROR: Summer cover density remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(covden_win_remap_path):
-            logging.error('\nERROR: Winter cover density remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(snow_intcp_remap_path):
-            logging.error('\nERROR: Winter snow interception remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(srain_intcp_remap_path):
-            logging.error('\nERROR: Summer rain interception remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(wrain_intcp_remap_path):
-            logging.error('\nERROR: Winter rain interception remap file does not exist')
-            raise SystemExit()
-        if not os.path.isfile(root_depth_remap_path):
-            logging.error('\nERROR: Root depth remap file does not exist')
-            raise SystemExit()
+        remap_path_list = [
+            cov_type_remap_path, covden_sum_remap_path, covden_win_remap_path,
+            snow_intcp_remap_path, srain_intcp_remap_path,
+            wrain_intcp_remap_path, root_depth_remap_path]
+        for remap_path in remap_path_list:
+            remap_check(remap_path)
+
+        ## DEADBEEF
+        ##if not os.path.isfile(cov_type_remap_path):
+        ##    logging.error('\nERROR: Cover type remap file does not exist')
+        ##    raise SystemExit()
+        ##if not os.path.isfile(covden_sum_remap_path):
+        ##    logging.error('\nERROR: Summer cover density remap file does not exist')
+        ##    raise SystemExit()
+        ##if not os.path.isfile(covden_win_remap_path):
+        ##    logging.error('\nERROR: Winter cover density remap file does not exist')
+        ##    raise SystemExit()
+        ##if not os.path.isfile(snow_intcp_remap_path):
+        ##    logging.error('\nERROR: Winter snow interception remap file does not exist')
+        ##    raise SystemExit()
+        ##if not os.path.isfile(srain_intcp_remap_path):
+        ##    logging.error('\nERROR: Summer rain interception remap file does not exist')
+        ##    raise SystemExit()
+        ##if not os.path.isfile(wrain_intcp_remap_path):
+        ##    logging.error('\nERROR: Winter rain interception remap file does not exist')
+        ##    raise SystemExit()
+        ##if not os.path.isfile(root_depth_remap_path):
+        ##    logging.error('\nERROR: Root depth remap file does not exist')
+        ##    raise SystemExit()
 
         ## Check other inputs
         if veg_type_cs <= 0:
