@@ -897,7 +897,7 @@ def remap_check(remap_path):
 
     ## First check for final newline character
     save_flag = False
-    if remap_lines[-1] and remap_lines[-1].endswith('\n'):
+    if remap_lines and remap_lines[-1] and remap_lines[-1].endswith('\n'):
         save_flag = True
 
     ## Then remove empty lines and strip white space and newline characters
@@ -921,7 +921,7 @@ def remap_check(remap_path):
             for i, line in enumerate(remap_lines):
                 ## Don't write newline character on last line
                 ## This causes an error in ArcGIS 10.2.2
-                if (i+1) < len(lines):
+                if (i+1) < len(remap_lines):
                     remap_f.write(line + '\n')
                 else:
                     remap_f.write(line)
