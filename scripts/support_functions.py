@@ -907,6 +907,11 @@ def remap_check(remap_path):
     if len(remap_lines) <> line_count:
         save_flag = True
 
+    ## Trim comments longer than 80 characters
+    if arcpy.GetInstallInfo()['Version'].startswith('10.2'):
+        remap_lines = [l[:80] if "#" in l else l for l in remap_lines]
+        save_flag = True
+
     ## If lines were removed, resave the filtered remap file
     if save_flag:
         logging.warning(
